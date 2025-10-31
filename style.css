@@ -93,3 +93,34 @@ pre {
 #manual-login-container {
   margin-bottom: 30px;
 }
+
+/* ----- QRスキャナー用スタイル ----- */
+#scanner-container {
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+#qr-reader {
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto 15px auto;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  overflow: hidden; /* 角丸を適用するため */
+}
+
+/* スキャン中のボーダー色を変更 */
+#qr-reader.scanning {
+  border: 2px solid #1a73e8;
+}
+
+#start-scan-btn {
+  background-color: #28a745; /* 緑色 */
+  padding: 10px 20px;
+  font-size: 16px;
+  width: auto; /* 幅を自動調整 */
+}
+
+#start-scan-btn:hover {
+  background-color: #218838;
+}

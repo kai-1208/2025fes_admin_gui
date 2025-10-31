@@ -9,6 +9,11 @@
 <body>
   <main>
     <h1>スタッフ用フラグ更新ツール</h1>
+    
+    <section id="scanner-container">
+      <div id="qr-reader"></div>
+      <button id="start-scan-btn">QRスキャンを開始</button>
+    </section>
 
     <!-- 手動ログインフォーム (新規追加) -->
     <section id="manual-login-container">
@@ -55,6 +60,7 @@
     <div id="message-container"></div>
 
   </main>
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   <script src="app.js"></script> <!-- ファイル名を修正 -->
 </body>
 </html>

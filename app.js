@@ -3,6 +3,9 @@ const API_BASE_URL = 'https://semirarely-expositional-aria.ngrok-free.dev'; // n
 const QUEST_API_KEY = '2025quest-api-key';
 
 // ----- DOM要素の取得 -----
+const scannerContainer = document.getElementById('scanner-container');
+const qrReaderEl = document.getElementById('qr-reader');
+const startScanBtn = document.getElementById('start-scan-btn');
 const manualLoginContainer = document.getElementById('manual-login-container');
 const manualLoginForm = document.getElementById('manual-login-form');
 const userInfoContainer = document.getElementById('user-info-container');
@@ -14,8 +17,18 @@ const userNameEl = document.getElementById('userName');
 const currentFlagsEl = document.getElementById('currentFlags');
 
 let currentUserId = null;
+let html5QrCode = null;
 
 // ----- メイン処理 -----
+
+// ページが読み込まれたときの初期化
+window.addEventListener('DOMContentLoaded', () => {
+  // スキャナーインスタンスを生成
+  html5QrCode = new Html5Qrcode("qr-reader");
+});
+
+// 「QRスキャンを開始」ボタンが押されたときの処理
+startScanBtn.addEventListener('click', startScanner);
 
 // ページが読み込まれたら、URLパラメータをチェックして処理を振り分ける
 window.addEventListener('DOMContentLoaded', handleInitialLoad);
@@ -28,6 +41,49 @@ updateForm.addEventListener('submit', handleUpdateFlag);
 
 
 // ----- 関数定義 -----
+
+/**
+ * QRコードスキャナーを起動する
+ */
+function startScanner() {
+  showMessage('カメラを起動しています...', 'success');
+  qrReaderEl.classList.add('scanning');
+  startScanBtn.disabled = true;
+
+  const qrCodeSuccessCallback = (decodedText, decodedResult) => {
+    // QRコードの読み取りに成功したときの処理
+    html5QrCode.stop().then(() => {
+      qrReaderEl.classList.remove('scanning');
+      startScanBtn.disabled = false;
+      showMessage('QRコードを読み取りました。認証中...', 'success');
+      
+      try {
+        const url = new URL(decodedText);
+        const id = url.searchParams.get('id');
+        const pass = url.searchParams.get('pass');
+        
+        if (id && pass) {
+          processLogin(id, pass);
+        } else {
+          throw new Error('QRコードにidまたはpassが含まれていません。');
+        }
+      } catch (error) {
+        showMessage(`エラー: 無効なQRコードです。(${error.message})`, 'error');
+      }
+    });
+  };
+
+  const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+
+  // カメラを起動
+  // { facingMode: "environment" } で背面カメラを優先
+  html5QrCode.start({ facingMode: "environment" }, config, qrCodeSuccessCallback)
+    .catch(err => {
+      showMessage(`エラー: カメラを起動できませんでした。(${err})`, 'error');
+      qrReaderEl.classList.remove('scanning');
+      startScanBtn.disabled = false;
+    });
+}
 
 /**
  * ページの初期化処理。URLパラメータの有無で動作を切り替える。
@@ -90,6 +146,7 @@ async function processLogin(id, pass) {
     displayUserInfo(user);
     
     // ログイン成功後、手動フォームを隠して更新フォームを表示
+    scannerContainer.classList.add('hidden');
     manualLoginContainer.classList.add('hidden');
     userInfoContainer.classList.remove('hidden');
     updateFormContainer.classList.remove('hidden');
