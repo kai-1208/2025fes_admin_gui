@@ -25,9 +25,10 @@ const flagDefinitions = {
 };
 
 // ----- DOM要素の取得 -----
-const scannerContainer = document.getElementById('scanner-container');
+const loginMethodContainer = document.getElementById('login-method-container');
 const qrReaderEl = document.getElementById('qr-reader');
 const startScanBtn = document.getElementById('start-scan-btn');
+const manualLoginForm = document.getElementById('manual-login-form');
 const resetBtn = document.getElementById('reset-btn');
 const userInfoContainer = document.getElementById('user-info-container');
 const updateFormContainer = document.getElementById('update-form-container');
@@ -48,6 +49,7 @@ window.addEventListener('DOMContentLoaded', () => {
   html5QrCode = new Html5Qrcode("qr-reader");
 });
 startScanBtn.addEventListener('click', startScanner);
+manualLoginForm.addEventListener('submit', handleManualLogin);
 resetBtn.addEventListener('click', resetToInitialState);
 gameCategorySelect.addEventListener('change', renderDynamicInputs);
 updateForm.addEventListener('submit', handleUpdateFlags);
@@ -56,19 +58,18 @@ updateForm.addEventListener('submit', handleUpdateFlags);
 // ----- 関数定義 -----
 
 /**
- * 初期状態に戻す
+ * 初期状態（ログイン前）に戻す
  */
 function resetToInitialState() {
   currentUserId = null;
   userInfoContainer.classList.add('hidden');
   updateFormContainer.classList.add('hidden');
-  scannerContainer.classList.remove('hidden');
+  loginMethodContainer.classList.remove('hidden'); // QRと手動入力フォームを表示
   
-  // フォームの状態もリセット
   gameCategorySelect.value = '';
   renderDynamicInputs();
 
-  showMessage('', 'success'); // メッセージをクリア
+  showMessage('', 'success');
 }
 
 /**
@@ -79,8 +80,7 @@ function startScanner() {
   qrReaderEl.classList.add('scanning');
   startScanBtn.disabled = true;
 
-  const qrCodeSuccessCallback = (decodedText, decodedResult) => {
-    // QRコードの読み取りに成功したときの処理
+  const qrCodeSuccessCallback = (decodedText) => {
     html5QrCode.stop().then(() => {
       qrReaderEl.classList.remove('scanning');
       startScanBtn.disabled = false;
@@ -90,7 +90,6 @@ function startScanner() {
         const url = new URL(decodedText);
         const id = url.searchParams.get('id');
         const pass = url.searchParams.get('pass');
-        
         if (id && pass) {
           processLogin(id, pass);
         } else {
@@ -104,14 +103,27 @@ function startScanner() {
 
   const config = { fps: 10, qrbox: { width: 250, height: 250 } };
 
-  // カメラを起動
-  // { facingMode: "environment" } で背面カメラを優先
   html5QrCode.start({ facingMode: "environment" }, config, qrCodeSuccessCallback)
     .catch(err => {
       showMessage(`エラー: カメラを起動できませんでした。(${err})`, 'error');
       qrReaderEl.classList.remove('scanning');
       startScanBtn.disabled = false;
     });
+}
+
+/**
+ * 手動ログインフォームの送信を処理
+ * @param {Event} event フォームのsubmitイベント
+ */
+function handleManualLogin(event) {
+    event.preventDefault();
+    const id = document.getElementById('manualId').value;
+    const pass = document.getElementById('manualPass').value;
+    if (id && pass) {
+        processLogin(id, pass);
+    } else {
+        showMessage('エラー: IDとPASSを両方入力してください。', 'error');
+    }
 }
 
 /**
@@ -134,8 +146,8 @@ async function processLogin(id, pass) {
         const user = result.data.user;
         currentUserId = user.id;
 
-        // UIの状態を更新
-        scannerContainer.classList.add('hidden');
+        // UIの状態を更新（ログイン後）
+        loginMethodContainer.classList.add('hidden'); // ログイン方法選択エリアを隠す
         userInfoContainer.classList.remove('hidden');
         updateFormContainer.classList.remove('hidden');
         displayUserInfo(user);
@@ -152,7 +164,7 @@ async function processLogin(id, pass) {
  */
 function renderDynamicInputs() {
   const category = gameCategorySelect.value;
-  dynamicInputsContainer.innerHTML = ''; // 中身をクリア
+  dynamicInputsContainer.innerHTML = '';
 
   if (!category) {
     updateSubmitBtn.classList.add('hidden');
@@ -163,17 +175,14 @@ function renderDynamicInputs() {
   definitions.forEach(def => {
     const group = document.createElement('div');
     group.className = 'dynamic-input-group';
-    
     const label = document.createElement('label');
     label.htmlFor = `input-${def.name}`;
     label.textContent = def.label;
-    
     const input = document.createElement('input');
     input.type = 'number';
     input.id = `input-${def.name}`;
-    input.dataset.flagName = def.name; // どのフラグかを示すカスタムデータ属性
+    input.dataset.flagName = def.name;
     input.placeholder = '加算値';
-    
     group.appendChild(label);
     group.appendChild(input);
     dynamicInputsContainer.appendChild(group);
@@ -195,7 +204,6 @@ async function handleUpdateFlags(event) {
 
     inputs.forEach(input => {
         const value = parseInt(input.value, 10);
-        // 値が入力されていて0でないものだけを対象
         if (!isNaN(value) && value !== 0) {
             updates.push({
                 flagName: input.dataset.flagName,
@@ -223,7 +231,6 @@ async function handleUpdateFlags(event) {
         displayFlags(result.data.updatedFlags);
         showMessage('フラグの更新に成功しました！', 'success');
         
-        // フォームをリセット
         gameCategorySelect.value = '';
         renderDynamicInputs();
 

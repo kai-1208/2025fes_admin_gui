@@ -9,19 +9,45 @@
 <body>
   <main>
     <h1>スタッフ用フラグ更新ツール</h1>
-    <section id="scanner-container">
-      <div id="qr-reader"></div>
-      <button id="start-scan-btn">1. QRスキャンを開始</button>
+
+    <!-- ログイン方法選択エリア -->
+    <section id="login-method-container">
+      <!-- QRスキャナーセクション -->
+      <div id="scanner-container">
+        <div id="qr-reader"></div>
+        <button id="start-scan-btn">1. QRスキャンを開始</button>
+      </div>
+
+      <!-- 区切り線 -->
+      <div class="divider">または</div>
+
+      <!-- 手動ログインフォーム -->
+      <div id="manual-login-container">
+        <h2>手動認証</h2>
+        <form id="manual-login-form">
+          <div class="form-group">
+            <label for="manualId">ユーザーID:</label>
+            <input type="text" id="manualId" name="manualId" required>
+          </div>
+          <div class="form-group">
+            <label for="manualPass">パスワード:</label>
+            <input type="text" id="manualPass" name="manualPass" required>
+          </div>
+          <button type="submit">認証する</button>
+        </form>
+      </div>
     </section>
-    
+
+    <!-- ユーザー情報表示エリア (初期状態では非表示) -->
     <section id="user-info-container" class="hidden">
       <h2>対象ユーザー</h2>
       <p>ID: <strong id="userId">---</strong> | 名前: <strong id="userName">---</strong></p>
       <h3>現在のフラグ:</h3>
       <pre id="currentFlags">{}</pre>
-      <button id="reset-btn" class="secondary-btn">別のユーザーをスキャン</button>
+      <button id="reset-btn" class="secondary-btn">別のユーザーを認証</button>
     </section>
 
+    <!-- フラグ更新フォーム (初期状態では非表示) -->
     <section id="update-form-container" class="hidden">
       <h2>フラグ更新</h2>
       <form id="update-form">
@@ -35,7 +61,6 @@
           </select>
         </div>
         
-        <!-- 動的に入力欄が挿入されるエリア -->
         <div id="dynamic-inputs-container"></div>
         
         <button type="submit" class="hidden" id="update-submit-btn">3. 選択した項目を更新</button>

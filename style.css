@@ -20,10 +20,10 @@ h1, h2 {
   border-bottom: 2px solid #e0e0e0;
   padding-bottom: 10px;
 }
-.hidden { display: none; }
+.hidden { display: none !important; } /* !importantで確実に非表示にする */
 .form-group { margin-bottom: 15px; }
 label { display: block; margin-bottom: 5px; font-weight: bold; }
-input[type="number"], select {
+input[type="number"], input[type="text"], select {
   width: 100%;
   padding: 10px;
   border: 1px solid #ccc;
@@ -62,8 +62,16 @@ pre {
 .message-success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
 .message-error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
 
+/* --- Login Method --- */
+.divider {
+  text-align: center;
+  margin: 25px 0;
+  color: #666;
+  font-weight: bold;
+}
+
 /* --- QR Scanner --- */
-#scanner-container { margin-bottom: 30px; text-align: center; }
+#scanner-container { text-align: center; }
 #qr-reader { width: 100%; max-width: 400px; margin: 0 auto 15px auto; border: 2px solid #e0e0e0; border-radius: 8px; overflow: hidden; }
 #qr-reader.scanning { border: 2px solid #1a73e8; }
 #start-scan-btn { background-color: #28a745; width: auto; }
