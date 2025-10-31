@@ -4,13 +4,29 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>スタッフ用フラグ更新ツール</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css"> <!-- ファイル名を修正 -->
 </head>
 <body>
   <main>
     <h1>スタッフ用フラグ更新ツール</h1>
 
-    <!-- ユーザー情報表示エリア -->
+    <!-- 手動ログインフォーム (新規追加) -->
+    <section id="manual-login-container">
+      <h2>手動認証</h2>
+      <form id="manual-login-form">
+        <div class="form-group">
+          <label for="manualId">ユーザーID:</label>
+          <input type="text" id="manualId" name="manualId" required>
+        </div>
+        <div class="form-group">
+          <label for="manualPass">パスワード:</label>
+          <input type="text" id="manualPass" name="manualPass" required>
+        </div>
+        <button type="submit">認証する</button>
+      </form>
+    </section>
+
+    <!-- ユーザー情報表示エリア (初期状態では非表示) -->
     <section id="user-info-container" class="hidden">
       <h2>対象ユーザー</h2>
       <p>ID: <strong id="userId">---</strong></p>
@@ -19,7 +35,7 @@
       <pre id="currentFlags">ここに現在のフラグが表示されます。</pre>
     </section>
 
-    <!-- フラグ更新フォーム -->
+    <!-- フラグ更新フォーム (初期状態では非表示) -->
     <section id="update-form-container" class="hidden">
       <h2>フラグ更新</h2>
       <form id="update-form">
@@ -39,6 +55,6 @@
     <div id="message-container"></div>
 
   </main>
-  <script src="app.js"></script>
+  <script src="app.js"></script> <!-- ファイル名を修正 -->
 </body>
 </html>
