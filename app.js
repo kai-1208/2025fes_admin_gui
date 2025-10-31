@@ -157,18 +157,24 @@ async function processLogin(id, pass) {
 }
 
 /**
- * フラグ更新フォームの送信処理 (内容は以前と同じ)
+ * フラグ更新フォームの送信処理
  * @param {Event} event フォームのsubmitイベント
  */
 async function handleUpdateFlag(event) {
   event.preventDefault();
   if (!currentUserId) { return; }
 
-  const flagName = document.getElementById('flagName').value;
+  // ★ ドロップダウンリストから選択された値を取得するように変更
+  const flagName = document.getElementById('flagNameSelect').value;
   const increment = parseInt(document.getElementById('increment').value, 10);
 
-  if (!flagName || isNaN(increment)) {
-    showMessage('エラー: フラグ名と加算する値を正しく入力してください。', 'error');
+  // ★ ドロップダウンが選択されているかチェック
+  if (!flagName) {
+    showMessage('エラー: 更新する項目を選択してください。', 'error');
+    return;
+  }
+  if (isNaN(increment)) {
+    showMessage('エラー: 加算する値を正しく入力してください。', 'error');
     return;
   }
   
