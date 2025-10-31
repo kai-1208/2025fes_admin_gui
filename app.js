@@ -74,7 +74,11 @@ async function processLogin(id, pass) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id, pass }),
     });
+    console.log('API Response Status:', response.status); 
+    
     const result = await response.json();
+
+    console.log('API Response Body:', result);
 
     if (result.status !== 'success') {
       throw new Error(result.message || 'ログインに失敗しました。');
