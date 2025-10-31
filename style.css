@@ -1,4 +1,3 @@
-/* style.css */
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   background-color: #f4f7f6;
@@ -8,7 +7,6 @@ body {
   display: flex;
   justify-content: center;
 }
-
 main {
   background-color: #fff;
   padding: 20px 30px;
@@ -17,35 +15,21 @@ main {
   width: 100%;
   max-width: 500px;
 }
-
 h1, h2 {
   color: #1a73e8;
   border-bottom: 2px solid #e0e0e0;
   padding-bottom: 10px;
 }
-
-.hidden {
-  display: none;
-}
-
-.form-group {
-  margin-bottom: 15px;
-}
-
-label {
-  display: block;
-  margin-bottom: 5px;
-  font-weight: bold;
-}
-
-input[type="text"], input[type="number"] {
+.hidden { display: none; }
+.form-group { margin-bottom: 15px; }
+label { display: block; margin-bottom: 5px; font-weight: bold; }
+input[type="number"], select {
   width: 100%;
   padding: 10px;
   border: 1px solid #ccc;
   border-radius: 4px;
-  box-sizing: border-box; /* paddingを含めてwidth 100%にする */
+  box-sizing: border-box;
 }
-
 button {
   width: 100%;
   padding: 12px;
@@ -56,20 +40,18 @@ button {
   font-size: 16px;
   cursor: pointer;
   transition: background-color 0.3s;
+  margin-top: 10px;
 }
-
-button:hover {
-  background-color: #155ab6;
-}
-
+button:hover { background-color: #155ab6; }
+button.secondary-btn { background-color: #6c757d; }
+button.secondary-btn:hover { background-color: #5a6268; }
 pre {
   background-color: #eee;
   padding: 15px;
   border-radius: 4px;
-  white-space: pre-wrap; /* 長い行でも折り返す */
+  white-space: pre-wrap;
   word-wrap: break-word;
 }
-
 #message-container {
   margin-top: 20px;
   padding: 15px;
@@ -77,50 +59,29 @@ pre {
   text-align: center;
   font-weight: bold;
 }
+.message-success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+.message-error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
 
-.message-success {
-  background-color: #d4edda;
-  color: #155724;
-  border: 1px solid #c3e6cb;
+/* --- QR Scanner --- */
+#scanner-container { margin-bottom: 30px; text-align: center; }
+#qr-reader { width: 100%; max-width: 400px; margin: 0 auto 15px auto; border: 2px solid #e0e0e0; border-radius: 8px; overflow: hidden; }
+#qr-reader.scanning { border: 2px solid #1a73e8; }
+#start-scan-btn { background-color: #28a745; width: auto; }
+#start-scan-btn:hover { background-color: #218838; }
+
+/* --- Dynamic Inputs --- */
+.dynamic-input-group {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    padding: 10px;
+    border-radius: 5px;
 }
-
-.message-error {
-  background-color: #f8d7da;
-  color: #721c24;
-  border: 1px solid #f5c6cb;
+.dynamic-input-group label {
+    flex: 1;
+    margin: 0 10px 0 0;
 }
-
-#manual-login-container {
-  margin-bottom: 30px;
-}
-
-/* ----- QRスキャナー用スタイル ----- */
-#scanner-container {
-  margin-bottom: 30px;
-  text-align: center;
-}
-
-#qr-reader {
-  width: 100%;
-  max-width: 400px;
-  margin: 0 auto 15px auto;
-  border: 2px solid #e0e0e0;
-  border-radius: 8px;
-  overflow: hidden; /* 角丸を適用するため */
-}
-
-/* スキャン中のボーダー色を変更 */
-#qr-reader.scanning {
-  border: 2px solid #1a73e8;
-}
-
-#start-scan-btn {
-  background-color: #28a745; /* 緑色 */
-  padding: 10px 20px;
-  font-size: 16px;
-  width: auto; /* 幅を自動調整 */
-}
-
-#start-scan-btn:hover {
-  background-color: #218838;
+.dynamic-input-group input {
+    width: 80px;
 }

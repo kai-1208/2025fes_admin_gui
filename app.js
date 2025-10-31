@@ -2,15 +2,39 @@
 const API_BASE_URL = 'https://semirarely-expositional-aria.ngrok-free.dev'; // ngrokのURL
 const QUEST_API_KEY = '2025quest-api-key';
 
+// ----- フラグ定義 (フロントエンド用) -----
+const flagDefinitions = {
+  casino: [
+    { name: 'casino_roulette_played', label: 'ルーレットをプレイ' },
+    { name: 'casino_poker_played', label: 'ポーカーをプレイ' },
+    { name: 'casino_blackjack_played', label: 'ブラックジャックをプレイ' },
+    { name: 'casino_coins_earned', label: 'コインを稼いだ' },
+    { name: 'casino_losses', label: '負けた' },
+  ],
+  dungeon: [
+    { name: 'dungeon_enemies_defeated', label: '敵を倒した' },
+    { name: 'dungeon_chests_opened', label: '宝箱を見つけた' },
+    { name: 'dungeon_player_deaths', label: '倒れた' },
+    { name: 'dungeon_floors_cleared', label: '階層を突破した' },
+  ],
+  code_editor: [
+    { name: 'code_problems_solved', label: '問題を解いた' },
+    { name: 'code_failures', label: '失敗した' },
+    { name: 'code_solo_clears', label: '1人でクリア' },
+  ]
+};
+
 // ----- DOM要素の取得 -----
 const scannerContainer = document.getElementById('scanner-container');
 const qrReaderEl = document.getElementById('qr-reader');
 const startScanBtn = document.getElementById('start-scan-btn');
-const manualLoginContainer = document.getElementById('manual-login-container');
-const manualLoginForm = document.getElementById('manual-login-form');
+const resetBtn = document.getElementById('reset-btn');
 const userInfoContainer = document.getElementById('user-info-container');
 const updateFormContainer = document.getElementById('update-form-container');
 const updateForm = document.getElementById('update-form');
+const gameCategorySelect = document.getElementById('game-category-select');
+const dynamicInputsContainer = document.getElementById('dynamic-inputs-container');
+const updateSubmitBtn = document.getElementById('update-submit-btn');
 const messageContainer = document.getElementById('message-container');
 const userIdEl = document.getElementById('userId');
 const userNameEl = document.getElementById('userName');
@@ -19,28 +43,33 @@ const currentFlagsEl = document.getElementById('currentFlags');
 let currentUserId = null;
 let html5QrCode = null;
 
-// ----- メイン処理 -----
-
-// ページが読み込まれたときの初期化
+// ----- イベントリスナー -----
 window.addEventListener('DOMContentLoaded', () => {
-  // スキャナーインスタンスを生成
   html5QrCode = new Html5Qrcode("qr-reader");
 });
-
-// 「QRスキャンを開始」ボタンが押されたときの処理
 startScanBtn.addEventListener('click', startScanner);
-
-// ページが読み込まれたら、URLパラメータをチェックして処理を振り分ける
-window.addEventListener('DOMContentLoaded', handleInitialLoad);
-
-// 手動ログインフォームが送信されたときの処理
-manualLoginForm.addEventListener('submit', handleManualLogin);
-
-// フラグ更新フォームが送信されたときの処理
-updateForm.addEventListener('submit', handleUpdateFlag);
+resetBtn.addEventListener('click', resetToInitialState);
+gameCategorySelect.addEventListener('change', renderDynamicInputs);
+updateForm.addEventListener('submit', handleUpdateFlags);
 
 
 // ----- 関数定義 -----
+
+/**
+ * 初期状態に戻す
+ */
+function resetToInitialState() {
+  currentUserId = null;
+  userInfoContainer.classList.add('hidden');
+  updateFormContainer.classList.add('hidden');
+  scannerContainer.classList.remove('hidden');
+  
+  // フォームの状態もリセット
+  gameCategorySelect.value = '';
+  renderDynamicInputs();
+
+  showMessage('', 'success'); // メッセージをクリア
+}
 
 /**
  * QRコードスキャナーを起動する
@@ -86,116 +115,121 @@ function startScanner() {
 }
 
 /**
- * ページの初期化処理。URLパラメータの有無で動作を切り替える。
- */
-function handleInitialLoad() {
-  const params = new URLSearchParams(window.location.search);
-  const id = params.get('id');
-  const pass = params.get('pass');
-
-  if (id && pass) {
-    // QRコード経由のアクセス：自動でログイン処理を開始
-    manualLoginContainer.classList.add('hidden'); // 手動フォームは隠す
-    processLogin(id, pass);
-  } else {
-    // 直接アクセス：手動ログインフォームを表示したまま待機
-    showMessage('QRコードをスキャンするか、IDとPASSを手動で入力してください。', 'success');
-  }
-}
-
-/**
- * 手動ログインフォームの送信を処理
- * @param {Event} event フォームのsubmitイベント
- */
-function handleManualLogin(event) {
-  event.preventDefault();
-  const id = document.getElementById('manualId').value;
-  const pass = document.getElementById('manualPass').value;
-  if (id && pass) {
-    processLogin(id, pass);
-  } else {
-    showMessage('エラー: IDとPASSを両方入力してください。', 'error');
-  }
-}
-
-/**
  * ログイン処理の本体
  * @param {string} id ユーザーID
  * @param {string} pass パスワード
  */
 async function processLogin(id, pass) {
-  try {
-    const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, pass }),
-    });
-    console.log('API Response Status:', response.status); 
-    
-    const result = await response.json();
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id, pass }),
+        });
+        const result = await response.json();
+        if (result.status !== 'success') {
+          throw new Error(result.message || 'ログインに失敗しました。');
+        }
 
-    console.log('API Response Body:', result);
+        const user = result.data.user;
+        currentUserId = user.id;
 
-    if (result.status !== 'success') {
-      throw new Error(result.message || 'ログインに失敗しました。');
+        // UIの状態を更新
+        scannerContainer.classList.add('hidden');
+        userInfoContainer.classList.remove('hidden');
+        updateFormContainer.classList.remove('hidden');
+        displayUserInfo(user);
+        showMessage('ユーザー認証成功。カテゴリを選択してください。', 'success');
+
+    } catch (error) {
+        showMessage(`エラー: ${error.message}`, 'error');
+        resetToInitialState();
     }
-
-    showMessage('ユーザー認証に成功しました。', 'success');
-    const user = result.data.user;
-    currentUserId = user.id;
-    displayUserInfo(user);
-    
-    // ログイン成功後、手動フォームを隠して更新フォームを表示
-    scannerContainer.classList.add('hidden');
-    manualLoginContainer.classList.add('hidden');
-    userInfoContainer.classList.remove('hidden');
-    updateFormContainer.classList.remove('hidden');
-
-  } catch (error) {
-    showMessage(`エラー: ${error.message}`, 'error');
-  }
 }
 
 /**
- * フラグ更新フォームの送信処理
+ * 選択されたカテゴリに応じて入力欄を動的に生成
+ */
+function renderDynamicInputs() {
+  const category = gameCategorySelect.value;
+  dynamicInputsContainer.innerHTML = ''; // 中身をクリア
+
+  if (!category) {
+    updateSubmitBtn.classList.add('hidden');
+    return;
+  }
+
+  const definitions = flagDefinitions[category];
+  definitions.forEach(def => {
+    const group = document.createElement('div');
+    group.className = 'dynamic-input-group';
+    
+    const label = document.createElement('label');
+    label.htmlFor = `input-${def.name}`;
+    label.textContent = def.label;
+    
+    const input = document.createElement('input');
+    input.type = 'number';
+    input.id = `input-${def.name}`;
+    input.dataset.flagName = def.name; // どのフラグかを示すカスタムデータ属性
+    input.placeholder = '加算値';
+    
+    group.appendChild(label);
+    group.appendChild(input);
+    dynamicInputsContainer.appendChild(group);
+  });
+  
+  updateSubmitBtn.classList.remove('hidden');
+}
+
+/**
+ * 複数フラグの更新処理
  * @param {Event} event フォームのsubmitイベント
  */
-async function handleUpdateFlag(event) {
-  event.preventDefault();
-  if (!currentUserId) { return; }
+async function handleUpdateFlags(event) {
+    event.preventDefault();
+    if (!currentUserId) return;
 
-  // ★ ドロップダウンリストから選択された値を取得するように変更
-  const flagName = document.getElementById('flagNameSelect').value;
-  const increment = parseInt(document.getElementById('increment').value, 10);
+    const updates = [];
+    const inputs = dynamicInputsContainer.querySelectorAll('input[type="number"]');
 
-  // ★ ドロップダウンが選択されているかチェック
-  if (!flagName) {
-    showMessage('エラー: 更新する項目を選択してください。', 'error');
-    return;
-  }
-  if (isNaN(increment)) {
-    showMessage('エラー: 加算する値を正しく入力してください。', 'error');
-    return;
-  }
-  
-  try {
-    const response = await fetch(`${API_BASE_URL}/api/users/update-flag`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': QUEST_API_KEY,
-      },
-      body: JSON.stringify({ userId: currentUserId, flagName, increment }),
+    inputs.forEach(input => {
+        const value = parseInt(input.value, 10);
+        // 値が入力されていて0でないものだけを対象
+        if (!isNaN(value) && value !== 0) {
+            updates.push({
+                flagName: input.dataset.flagName,
+                increment: value
+            });
+        }
     });
-    const result = await response.json();
-    if (result.status !== 'success') {
-      throw new Error(result.message || 'フラグの更新に失敗しました。');
+
+    if (updates.length === 0) {
+        showMessage('更新する値が入力されていません。', 'error');
+        return;
     }
-    displayFlags(result.data.updatedFlags);
-    showMessage(`成功: フラグ「${flagName}」を${increment}加算しました。`, 'success');
-  } catch (error) {
-    showMessage(`エラー: ${error.message}`, 'error');
-  }
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/users/update-flag`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-api-key': QUEST_API_KEY },
+            body: JSON.stringify({ userId: currentUserId, updates }),
+        });
+        const result = await response.json();
+        if (result.status !== 'success') {
+          throw new Error(result.message || 'フラグの更新に失敗しました。');
+        }
+        
+        displayFlags(result.data.updatedFlags);
+        showMessage('フラグの更新に成功しました！', 'success');
+        
+        // フォームをリセット
+        gameCategorySelect.value = '';
+        renderDynamicInputs();
+
+    } catch (error) {
+        showMessage(`エラー: ${error.message}`, 'error');
+    }
 }
 
 /**
