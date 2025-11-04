@@ -42,6 +42,7 @@ const updateSubmitBtn = document.getElementById('update-submit-btn');
 const messageContainer = document.getElementById('message-container');
 const userIdEl = document.getElementById('userId');
 const userNameEl = document.getElementById('userName');
+const userExpEl = document.getElementById("userExp");
 const currentFlagsEl = document.getElementById('currentFlags');
 
 let currentUserId = null;
@@ -142,7 +143,11 @@ async function processLogin(id, pass) {
             body: JSON.stringify({ id, pass }),
         });
         const result = await response.json();
-        if (result.status !== 'success') {
+        if (result.status === 'success') {
+          const { user, activeQuests } = result.data; // ★ userとactiveQuestsを両方受け取る
+          localStorage.setItem('authToken', token);
+          displayUserInfo(user, activeQuests); // ★ displayUserInfoに関数を両方渡す
+        } else {
           throw new Error(result.message || 'ログインに失敗しました。');
         }
 
@@ -251,7 +256,38 @@ async function handleUpdateFlags(event) {
 function displayUserInfo(user) {
   userIdEl.textContent = user.id;
   userNameEl.textContent = user.name;
+  userExpEl.textContent = user.experience;
   displayFlags(user.flags);
+
+  // --- カジノクエストの表示 ---
+  const casinoQuest = activeQuests.casino;
+  const casinoQuestEl = document.getElementById('casinoQuestText');
+  if (casinoQuest) {
+    const progress = user.flags[casinoQuest.targetFlag] || 0;
+    casinoQuestEl.textContent = `${getQuestText(casinoQuest)} (${progress} / ${casinoQuest.targetValue})`;
+  } else {
+    casinoQuestEl.textContent = "コンプリート！";
+  }
+
+  // --- ダンジョンクエストの表示 ---
+  const dungeonQuest = activeQuests.dungeon;
+  const dungeonQuestEl = document.getElementById('dungeonQuestText');
+  if (dungeonQuest) {
+    const progress = user.flags[dungeonQuest.targetFlag] || 0;
+    dungeonQuestEl.textContent = `${getQuestText(dungeonQuest)} (${progress} / ${dungeonQuest.targetValue})`;
+  } else {
+    dungeonQuestEl.textContent = "コンプリート！";
+  }
+
+  // --- コードエディタクエストの表示 ---
+  const codeEditorQuest = activeQuests.code_editor;
+  const codeEditorQuestEl = document.getElementById('codeEditorQuestText');
+  if (codeEditorQuest) {
+    const progress = user.flags[codeEditorQuest.targetFlag] || 0;
+    codeEditorQuestEl.textContent = `${getQuestText(codeEditorQuest)} (${progress} / ${codeEditorQuest.targetValue})`;
+  } else {
+    codeEditorQuestEl.textContent = "コンプリート！";
+  }
 }
 
 /**
@@ -270,4 +306,21 @@ function displayFlags(flags) {
 function showMessage(text, type) {
   messageContainer.textContent = text;
   messageContainer.className = type === 'success' ? 'message-success' : 'message-error';
+}
+
+/**
+ * クエスト定義から表示用の日本語テキストを生成するヘルパー関数
+ * @param {object} quest クエスト定義オブジェクト
+ * @returns {string} 表示用テキスト
+ */
+function getQuestText(quest) {
+  const textMap = {
+    casino_coins_earned: "コインを稼ごう！",
+    dungeon_enemies_defeated: "敵を倒そう！",
+    code_problems_solved: "問題を解こう！",
+    // ... 他の targetFlag に対する表示テキストを追加
+  };
+  
+  const baseText = textMap[quest.targetFlag] || "目標を達成しよう！";
+  return `Lv.${quest.level}: ${baseText}`;
 }
