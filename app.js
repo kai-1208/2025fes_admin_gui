@@ -187,6 +187,7 @@ function renderDynamicInputs() {
     input.dataset.flagName = def.name;
     input.placeholder = '加算値';
     input.value = '1';
+    input.step = '1';
     group.appendChild(label);
     group.appendChild(input);
     dynamicInputsContainer.appendChild(group);
