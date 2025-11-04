@@ -1,8 +1,9 @@
-// app.js
-const API_BASE_URL = 'https://semirarely-expositional-aria.ngrok-free.dev'; // ngrokのURL
+// app.js (完全修正版)
+
+const API_BASE_URL = 'https://semirarely-expositional-aria.ngrok-free.dev';
 const QUEST_API_KEY = '2025quest-api-key';
 
-// ----- フラグ定義 (フロントエンド用) -----
+// フラグ定義
 const flagDefinitions = {
   casino: [
     { name: 'casino_played', label: 'カジノをプレイした数'},
@@ -27,7 +28,7 @@ const flagDefinitions = {
   ]
 };
 
-// ----- DOM要素の取得 -----
+// DOM要素の取得
 const loginMethodContainer = document.getElementById('login-method-container');
 const qrReaderEl = document.getElementById('qr-reader');
 const startScanBtn = document.getElementById('start-scan-btn');
@@ -51,7 +52,7 @@ const codeEditorQuestEl = document.getElementById('codeEditorQuestText');
 let currentUserId = null;
 let html5QrCode = null;
 
-// ----- イベントリスナー -----
+// イベントリスナー
 window.addEventListener('DOMContentLoaded', () => {
   html5QrCode = new Html5Qrcode("qr-reader");
 });
@@ -61,7 +62,82 @@ resetBtn.addEventListener('click', resetToInitialState);
 gameCategorySelect.addEventListener('change', renderDynamicInputs);
 updateForm.addEventListener('submit', handleUpdateFlags);
 
-// ----- 関数定義 -----
+// 関数定義
+
+/**
+ * ログイン処理の本体
+ * @param {string} id ユーザーID
+ * @param {string} pass パスワード
+ */
+async function processLogin(id, pass) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id, pass }),
+        });
+        const result = await response.json();
+
+        if (result.status === 'success') {
+          const { token, user, activeQuests } = result.data;
+          localStorage.setItem('authToken', token);
+          currentUserId = user.id;
+
+          displayUserInfo(user, activeQuests);
+          
+          loginMethodContainer.classList.add('hidden');
+          userInfoContainer.classList.remove('hidden');
+          updateFormContainer.classList.remove('hidden');
+          showMessage('ユーザー認証成功。カテゴリを選択してください。', 'success');
+        } else {
+          throw new Error(result.message || 'ログインに失敗しました。');
+        }
+    } catch (error) {
+        console.error('Login Error:', error);
+        showMessage(`エラー: ${error.message}`, 'error');
+        resetToInitialState();
+    }
+}
+
+
+/**
+ * 画面にユーザー情報を表示する
+ * @param {object} user ユーザーオブジェクト
+ * @param {object} activeQuests アクティブなクエストの定義オブジェクト
+ */
+function displayUserInfo(user, activeQuests) {
+  userIdEl.textContent = user.id;
+  userNameEl.textContent = user.name;
+  userExpEl.textContent = user.experience;
+  displayFlags(user.flags);
+
+  // カジノクエストの表示
+  const casinoQuest = activeQuests.casino;
+  if (casinoQuest) {
+    const progress = user.flags[casinoQuest.targetFlag] || 0;
+    casinoQuestEl.textContent = `${getQuestText(casinoQuest)} (${progress} / ${casinoQuest.targetValue})`;
+  } else {
+    casinoQuestEl.textContent = "コンプリート！";
+  }
+
+  // ダンジョンクエストの表示
+  const dungeonQuest = activeQuests.dungeon;
+  if (dungeonQuest) {
+    const progress = user.flags[dungeonQuest.targetFlag] || 0;
+    dungeonQuestEl.textContent = `${getQuestText(dungeonQuest)} (${progress} / ${dungeonQuest.targetValue})`;
+  } else {
+    dungeonQuestEl.textContent = "コンプリート！";
+  }
+
+  // コードエディタクエストの表示
+  const codeEditorQuest = activeQuests.code_editor;
+  if (codeEditorQuest) {
+    const progress = user.flags[codeEditorQuest.targetFlag] || 0;
+    codeEditorQuestEl.textContent = `${getQuestText(codeEditorQuest)} (${progress} / ${codeEditorQuest.targetValue})`;
+  } else {
+    codeEditorQuestEl.textContent = "コンプリート！";
+  }
+}
 
 /**
  * 初期状態（ログイン前）に戻す
@@ -70,11 +146,9 @@ function resetToInitialState() {
   currentUserId = null;
   userInfoContainer.classList.add('hidden');
   updateFormContainer.classList.add('hidden');
-  loginMethodContainer.classList.remove('hidden'); // QRと手動入力フォームを表示
-  
+  loginMethodContainer.classList.remove('hidden');
   gameCategorySelect.value = '';
   renderDynamicInputs();
-
   showMessage('', 'success');
 }
 
@@ -85,30 +159,21 @@ function startScanner() {
   showMessage('カメラを起動しています...', 'success');
   qrReaderEl.classList.add('scanning');
   startScanBtn.disabled = true;
-
   const qrCodeSuccessCallback = (decodedText) => {
     html5QrCode.stop().then(() => {
       qrReaderEl.classList.remove('scanning');
       startScanBtn.disabled = false;
       showMessage('QRコードを読み取りました。認証中...', 'success');
-      
       try {
         const url = new URL(decodedText);
         const id = url.searchParams.get('id');
         const pass = url.searchParams.get('pass');
-        if (id && pass) {
-          processLogin(id, pass);
-        } else {
-          throw new Error('QRコードにidまたはpassが含まれていません。');
-        }
-      } catch (error) {
-        showMessage(`エラー: 無効なQRコードです。(${error.message})`, 'error');
-      }
+        if (id && pass) { processLogin(id, pass); } 
+        else { throw new Error('QRコードにidまたはpassが含まれていません。'); }
+      } catch (error) { showMessage(`エラー: 無効なQRコードです。(${error.message})`, 'error'); }
     });
   };
-
   const config = { fps: 10, qrbox: { width: 250, height: 250 } };
-
   html5QrCode.start({ facingMode: "environment" }, config, qrCodeSuccessCallback)
     .catch(err => {
       showMessage(`エラー: カメラを起動できませんでした。(${err})`, 'error');
@@ -125,48 +190,8 @@ function handleManualLogin(event) {
     event.preventDefault();
     const id = document.getElementById('manualId').value;
     const pass = document.getElementById('manualPass').value;
-    if (id && pass) {
-        processLogin(id, pass);
-    } else {
-        showMessage('エラー: IDとPASSを両方入力してください。', 'error');
-    }
-}
-
-/**
- * ログイン処理の本体
- * @param {string} id ユーザーID
- * @param {string} pass パスワード
- */
-async function processLogin(id, pass) {
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id, pass }),
-        });
-        const result = await response.json();
-        if (result.status === 'success') {
-          const { user, activeQuests } = result.data; // userとactiveQuestsを両方受け取る
-          localStorage.setItem('authToken', token);
-          displayUserInfo(user, activeQuests); // displayUserInfoに関数を両方渡す
-        } else {
-          throw new Error(result.message || 'ログインに失敗しました。');
-        }
-
-        const user = result.data.user;
-        currentUserId = user.id;
-
-        // UIの状態を更新（ログイン後）
-        loginMethodContainer.classList.add('hidden'); // ログイン方法選択エリアを隠す
-        userInfoContainer.classList.remove('hidden');
-        updateFormContainer.classList.remove('hidden');
-        displayUserInfo(user);
-        showMessage('ユーザー認証成功。カテゴリを選択してください。', 'success');
-
-    } catch (error) {
-        showMessage(`エラー: ${error.message}`, 'error');
-        resetToInitialState();
-    }
+    if (id && pass) { processLogin(id, pass); } 
+    else { showMessage('エラー: IDとPASSを両方入力してください。', 'error'); }
 }
 
 /**
@@ -175,12 +200,10 @@ async function processLogin(id, pass) {
 function renderDynamicInputs() {
   const category = gameCategorySelect.value;
   dynamicInputsContainer.innerHTML = '';
-
   if (!category) {
     updateSubmitBtn.classList.add('hidden');
     return;
   }
-
   const definitions = flagDefinitions[category];
   definitions.forEach(def => {
     const group = document.createElement('div');
@@ -199,7 +222,6 @@ function renderDynamicInputs() {
     group.appendChild(input);
     dynamicInputsContainer.appendChild(group);
   });
-  
   updateSubmitBtn.classList.remove('hidden');
 }
 
@@ -210,25 +232,18 @@ function renderDynamicInputs() {
 async function handleUpdateFlags(event) {
     event.preventDefault();
     if (!currentUserId) return;
-
     const updates = [];
     const inputs = dynamicInputsContainer.querySelectorAll('input[type="number"]');
-
     inputs.forEach(input => {
         const value = parseInt(input.value, 10);
         if (!isNaN(value) && value !== 0) {
-            updates.push({
-                flagName: input.dataset.flagName,
-                increment: value
-            });
+            updates.push({ flagName: input.dataset.flagName, increment: value });
         }
     });
-
     if (updates.length === 0) {
         showMessage('更新する値が入力されていません。', 'error');
         return;
     }
-
     try {
         const response = await fetch(`${API_BASE_URL}/api/users/update-flag`, {
             method: 'POST',
@@ -236,57 +251,12 @@ async function handleUpdateFlags(event) {
             body: JSON.stringify({ userId: currentUserId, updates }),
         });
         const result = await response.json();
-        if (result.status !== 'success') {
-          throw new Error(result.message || 'フラグの更新に失敗しました。');
-        }
-        
+        if (result.status !== 'success') { throw new Error(result.message || 'フラグの更新に失敗しました。'); }
         displayFlags(result.data.updatedFlags);
         showMessage('フラグの更新に成功しました！', 'success');
-        
         gameCategorySelect.value = '';
         renderDynamicInputs();
-
-    } catch (error) {
-        showMessage(`エラー: ${error.message}`, 'error');
-    }
-}
-
-/**
- * 画面にユーザー情報を表示する
- * @param {object} user ユーザーオブジェクト
- */
-function displayUserInfo(user) {
-  userIdEl.textContent = user.id;
-  userNameEl.textContent = user.name;
-  userExpEl.textContent = user.experience;
-  displayFlags(user.flags);
-
-  // --- カジノクエストの表示 ---
-  const casinoQuest = activeQuests.casino;
-  if (casinoQuest) {
-    const progress = user.flags[casinoQuest.targetFlag] || 0;
-    casinoQuestEl.textContent = `${getQuestText(casinoQuest)} (${progress} / ${casinoQuest.targetValue})`;
-  } else {
-    casinoQuestEl.textContent = "コンプリート！";
-  }
-
-  // --- ダンジョンクエストの表示 ---
-  const dungeonQuest = activeQuests.dungeon;
-  if (dungeonQuest) {
-    const progress = user.flags[dungeonQuest.targetFlag] || 0;
-    dungeonQuestEl.textContent = `${getQuestText(dungeonQuest)} (${progress} / ${dungeonQuest.targetValue})`;
-  } else {
-    dungeonQuestEl.textContent = "コンプリート！";
-  }
-
-  // --- コードエディタクエストの表示 ---
-  const codeEditorQuest = activeQuests.code_editor;
-  if (codeEditorQuest) {
-    const progress = user.flags[codeEditorQuest.targetFlag] || 0;
-    codeEditorQuestEl.textContent = `${getQuestText(codeEditorQuest)} (${progress} / ${codeEditorQuest.targetValue})`;
-  } else {
-    codeEditorQuestEl.textContent = "コンプリート！";
-  }
+    } catch (error) { showMessage(`エラー: ${error.message}`, 'error'); }
 }
 
 /**
@@ -317,9 +287,8 @@ function getQuestText(quest) {
     casino_coins_earned: "コインを稼ごう！",
     dungeon_enemies_defeated: "敵を倒そう！",
     code_problems_solved: "問題を解こう！",
-    // ... 他の targetFlag に対する表示テキストを追加
+    dungeon_chests_opened: "宝箱を見つけよう！",
   };
-  
   const baseText = textMap[quest.targetFlag] || "目標を達成しよう！";
   return `Lv.${quest.level}: ${baseText}`;
 }
