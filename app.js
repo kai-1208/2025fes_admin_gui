@@ -5,19 +5,22 @@ const QUEST_API_KEY = '2025quest-api-key';
 // ----- フラグ定義 (フロントエンド用) -----
 const flagDefinitions = {
   casino: [
-    { name: 'casino_roulette_played', label: 'ルーレットのプレイ数' },
-    { name: 'casino_poker_played', label: 'ポーカーのプレイ数' },
-    { name: 'casino_blackjack_played', label: 'ブラックジャックのプレイ数' },
+    { name: 'casino_played', label: 'カジノをプレイした数'},
+    { name: 'casino_roulette_played', label: 'ルーレットをプレイした数' },
+    { name: 'casino_poker_played', label: 'ポーカーをプレイした数' },
+    { name: 'casino_blackjack_played', label: 'ブラックジャックをプレイした数' },
     { name: 'casino_coins_earned', label: 'コインを稼いだ量' },
     { name: 'casino_losses', label: '負けた数' },
   ],
   dungeon: [
+    { name: 'dungeon_played', label: 'ダンジョンをプレイした数'},
     { name: 'dungeon_enemies_defeated', label: '敵を倒した数' },
     { name: 'dungeon_chests_opened', label: '宝箱を見つけた数' },
     { name: 'dungeon_player_deaths', label: '倒れた数' },
     { name: 'dungeon_floors_cleared', label: '階層を突破した数' },
   ],
   code_editor: [
+    { name: 'code_editor_played', label: 'コードエディターをプレイした数'},
     { name: 'code_problems_solved', label: '問題を解いた数' },
     { name: 'code_failures', label: '失敗した数' },
     { name: 'code_solo_clears', label: '1人でクリアした数' },
