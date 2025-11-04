@@ -44,6 +44,9 @@ const userIdEl = document.getElementById('userId');
 const userNameEl = document.getElementById('userName');
 const userExpEl = document.getElementById("userExp");
 const currentFlagsEl = document.getElementById('currentFlags');
+const casinoQuestEl = document.getElementById('casinoQuestText');
+const dungeonQuestEl = document.getElementById('dungeonQuestText');
+const codeEditorQuestEl = document.getElementById('codeEditorQuestText');
 
 let currentUserId = null;
 let html5QrCode = null;
@@ -57,7 +60,6 @@ manualLoginForm.addEventListener('submit', handleManualLogin);
 resetBtn.addEventListener('click', resetToInitialState);
 gameCategorySelect.addEventListener('change', renderDynamicInputs);
 updateForm.addEventListener('submit', handleUpdateFlags);
-
 
 // ----- 関数定義 -----
 
@@ -144,9 +146,9 @@ async function processLogin(id, pass) {
         });
         const result = await response.json();
         if (result.status === 'success') {
-          const { user, activeQuests } = result.data; // ★ userとactiveQuestsを両方受け取る
+          const { user, activeQuests } = result.data; // userとactiveQuestsを両方受け取る
           localStorage.setItem('authToken', token);
-          displayUserInfo(user, activeQuests); // ★ displayUserInfoに関数を両方渡す
+          displayUserInfo(user, activeQuests); // displayUserInfoに関数を両方渡す
         } else {
           throw new Error(result.message || 'ログインに失敗しました。');
         }
@@ -261,7 +263,6 @@ function displayUserInfo(user) {
 
   // --- カジノクエストの表示 ---
   const casinoQuest = activeQuests.casino;
-  const casinoQuestEl = document.getElementById('casinoQuestText');
   if (casinoQuest) {
     const progress = user.flags[casinoQuest.targetFlag] || 0;
     casinoQuestEl.textContent = `${getQuestText(casinoQuest)} (${progress} / ${casinoQuest.targetValue})`;
@@ -271,7 +272,6 @@ function displayUserInfo(user) {
 
   // --- ダンジョンクエストの表示 ---
   const dungeonQuest = activeQuests.dungeon;
-  const dungeonQuestEl = document.getElementById('dungeonQuestText');
   if (dungeonQuest) {
     const progress = user.flags[dungeonQuest.targetFlag] || 0;
     dungeonQuestEl.textContent = `${getQuestText(dungeonQuest)} (${progress} / ${dungeonQuest.targetValue})`;
@@ -281,7 +281,6 @@ function displayUserInfo(user) {
 
   // --- コードエディタクエストの表示 ---
   const codeEditorQuest = activeQuests.code_editor;
-  const codeEditorQuestEl = document.getElementById('codeEditorQuestText');
   if (codeEditorQuest) {
     const progress = user.flags[codeEditorQuest.targetFlag] || 0;
     codeEditorQuestEl.textContent = `${getQuestText(codeEditorQuest)} (${progress} / ${codeEditorQuest.targetValue})`;
