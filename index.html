@@ -43,6 +43,24 @@
       <h2>対象ユーザー</h2>
       <p>ID: <strong id="userId">---</strong> | 名前: <strong id="userName">---</strong></p>
       <p>経験値: <strong id="userExp">---</strong> Exp</p>
+      <section id="quest-container">
+        <h2>進行中のクエスト</h2>
+        <div class="quest-item" id="quest-dungeon">
+          <h3>ダンジョン</h3>
+          <p id="dungeon-quest-text">---</p>
+          <p id="dungeon-quest-reward">---</p>
+        </div>
+        <div class="quest-item" id="quest-casino">
+          <h3>カジノ</h3>
+          <p id="casino-quest-text">---</p>
+          <p id="casino-quest-reward">---</p>
+        </div>
+        <div class="quest-item" id="quest-code_editor">
+          <h3>コードエディタ</h3>
+          <p id="code_editor-quest-text">---</p>
+          <p id="code_editor-quest-reward">---</p>
+        </div>
+      </section>
       <h3>現在のフラグ:</h3>
       <pre id="currentFlags">{}</pre>
       <button id="reset-btn" class="secondary-btn">別のユーザーを認証</button>

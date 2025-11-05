@@ -249,11 +249,63 @@ async function handleUpdateFlags(event) {
  * 画面にユーザー情報を表示する
  * @param {object} user ユーザーオブジェクト
  */
-function displayUserInfo(user) {
+// function displayUserInfo(user) {
+  
+//   displayFlags(user.flags);
+// }
+
+/**
+ * ユーザー情報とクエスト情報をHTML要素に反映させる関数
+ * @param {object} data - APIから返されたdataオブジェクト (userとactiveQuestsを含む)
+ */
+function displayUserInfo(data) {
+  const { user, activeQuests } = data;
+
+  // 基本情報を表示
   userIdEl.textContent = user.id;
   userNameEl.textContent = user.name;
   userExpEl.textContent = user.experience;
-  displayFlags(user.flags);
+
+  // ★ 各カテゴリのクエスト情報を表示
+  displayQuestProgress('dungeon', activeQuests.dungeon);
+  displayQuestProgress('casino', activeQuests.casino);
+  displayQuestProgress('code_editor', activeQuests.code_editor);
+}
+
+/**
+ * 個別のクエストの進捗を表示するヘルパー関数
+ * @param {string} category - 'dungeon', 'casino', 'code_editor'
+ * @param {object|null} questData - activeQuestsから取得したクエスト情報
+ */
+function displayQuestProgress(category, questData) {
+  const textEl = document.getElementById(`${category}-quest-text`);
+  const rewardEl = document.getElementById(`${category}-quest-reward`);
+
+  if (!questData) {
+    // クエストがnullの場合（全クリなど）
+    textEl.textContent = '全てのクエストを達成しました！';
+    rewardEl.textContent = '素晴らしい冒険でした！';
+    return;
+  }
+
+  // クエストの表示テキストを生成
+  // この部分は、targetFlagに応じて日本語を出し分ける
+  let questObjectiveText = '';
+  switch(questData.targetFlag) {
+    case 'dungeon_enemies_defeated':
+      questObjectiveText = `敵を倒す`; break;
+    case 'dungeon_chests_opened':
+      questObjectiveText = `宝箱を見つける`; break;
+    case 'casino_coins_earned':
+      questObjectiveText = `コインを稼ぐ`; break;
+    // ... 他のすべてのtargetFlagに対応する日本語を追加 ...
+    default:
+      questObjectiveText = '目標を達成する';
+  }
+
+  // 進捗と報酬のテキストを組み立てて表示
+  textEl.innerHTML = `<strong>Lv.${questData.level}:</strong> ${questObjectiveText} <br> (${questData.currentProgress} / ${questData.targetValue})`;
+  rewardEl.textContent = `報酬: ${questData.rewardCurrency}G / ${questData.rewardExperience}EXP`;
 }
 
 /**
