@@ -43,6 +43,7 @@ const messageContainer = document.getElementById('message-container');
 const userIdEl = document.getElementById('userId');
 const userNameEl = document.getElementById('userName');
 const userExpEl = document.getElementById("userExp");
+const userCurrencyEl = document.getElementById("userCurrency");
 const currentFlagsEl = document.getElementById('currentFlags');
 
 let currentUserId = null;
@@ -253,6 +254,7 @@ function displayUserInfo(user) {
   userIdEl.textContent = user.id;
   userNameEl.textContent = user.name;
   userExpEl.textContent = user.experience;
+  userCurrencyEl.textContent = user.currency;
   displayFlags(user.flags);
 }
 
