@@ -93,11 +93,11 @@ function startScanner() {
       try {
         const url = new URL(decodedText);
         const id = url.searchParams.get('id');
-        const pass = url.searchParams.get('pass');
-        if (id && pass) {
-          processLogin(id, pass);
+        const id2 = url.searchParams.get('id2');
+        if (id && id2) {
+          processLogin(id, id2);
         } else {
-          throw new Error('QRコードにidまたはpassが含まれていません。');
+          throw new Error('QRコードにidまたはid2が含まれていません。');
         }
       } catch (error) {
         showMessage(`エラー: 無効なQRコードです。(${error.message})`, 'error');
@@ -122,9 +122,9 @@ function startScanner() {
 function handleManualLogin(event) {
     event.preventDefault();
     const id = document.getElementById('manualId').value;
-    const pass = document.getElementById('manualPass').value;
-    if (id && pass) {
-        processLogin(id, pass);
+    const id2 = document.getElementById('manualPass').value;
+    if (id && id2) {
+        processLogin(id, id2);
     } else {
         showMessage('エラー: IDとPASSを両方入力してください。', 'error');
     }
@@ -133,14 +133,14 @@ function handleManualLogin(event) {
 /**
  * ログイン処理の本体
  * @param {string} id ユーザーID
- * @param {string} pass パスワード
+ * @param {string} id2 パスワード
  */
-async function processLogin(id, pass) {
+async function processLogin(id, id2) {
     try {
         const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id, pass }),
+            body: JSON.stringify({ id, id2 }),
         });
         const result = await response.json();
         if (result.status !== 'success') {
