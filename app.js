@@ -1,6 +1,6 @@
 // app.js
 const API_BASE_URL = 'https://10b90ecadaa3.ngrok-free.app'; // ngrokのURL
-const QUEST_API_KEY = '2025quest-api-key';
+const QUEST_API_KEY = '2025fes-quest-key';
 
 // ----- フラグ定義 (フロントエンド用) -----
 const flagDefinitions = {
