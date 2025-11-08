@@ -19,7 +19,7 @@ const flagDefinitions = {
   code_editor: [
     { name: 'code_editor_played', label: 'コードエディターをプレイした数'},
     { name: 'code_problems_solved', label: '問題を解いた数' },
-    { name: 'code_solo_clears', label: '1人でクリアした数' },
+    // { name: 'code_solo_clears', label: '1人でクリアした数' },
   ]
 };
 
