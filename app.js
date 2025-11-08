@@ -1,6 +1,6 @@
 // app.js
 const API_BASE_URL = 'https://semirarely-expositional-aria.ngrok-free.dev'; // ngrokのURL
-const QUEST_API_KEY = '2025quest-api-key';
+const QUEST_API_KEY = '2025fes-quest-key';
 
 // ----- フラグ定義 (フロントエンド用) -----
 const flagDefinitions = {
